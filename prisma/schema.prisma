@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleType {
+  ADMIN
+  VENDOR
+  CUSTOMER
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  avatarUrl     String?
+  role          RoleType  @default(CUSTOMER)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  cafeteria     Cafeteria?
+  reviews       Review[]
+  orders        Order[]
+  messagesSent     Message[] @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+}
+
+model Cafeteria {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  latitude    Float?
+  longitude   Float?
+  ownerId     String   @unique
+  owner       User     @relation(fields: [ownerId], references: [id])
+  products    Product[]
+  reviews     Review[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int       @default(0)
+  cafeteriaId String
+  cafeteria   Cafeteria @relation(fields: [cafeteriaId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  OrderProduct OrderProduct[]
+}
+
+model Order {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    User     @relation(fields: [customerId], references: [id])
+  total       Float
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  products    OrderProduct[]
+}
+
+model OrderProduct {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int
+  comment     String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  cafeteriaId String
+  cafeteria   Cafeteria @relation(fields: [cafeteriaId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  content     String
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
