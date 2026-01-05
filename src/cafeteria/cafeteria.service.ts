@@ -23,6 +23,19 @@ export class CafeteriaService {
         });
     }
 
+    async findAllAdmin() {
+        return this.prisma.cafeteria.findMany({
+            include: { products: true, owner: true },
+        });
+    }
+
+    async findMyCafeterias(ownerId: string) {
+        return this.prisma.cafeteria.findMany({
+            where: { ownerId, isActive: true },
+            include: { products: true },
+        });
+    }
+
     async findOne(id: string) {
         const cafeteria = await this.prisma.cafeteria.findUnique({
             where: { id },

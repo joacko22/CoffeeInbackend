@@ -27,6 +27,22 @@ export class CafeteriaController {
         return this.cafeteriaService.findAll();
     }
 
+    @Get('admin/all')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(RoleType.ADMIN)
+    @ApiOperation({ summary: 'Get all cafeterias (Admin only)' })
+    findAllAdmin() {
+        return this.cafeteriaService.findAllAdmin();
+    }
+
+    @Get('owner/my')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(RoleType.VENDOR)
+    @ApiOperation({ summary: 'Get my cafeterias (Vendor only)' })
+    findMyCafeterias(@Request() req: any) {
+        return this.cafeteriaService.findMyCafeterias(req.user.userId);
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get a cafeteria by id' })
     findOne(@Param('id') id: string) {
